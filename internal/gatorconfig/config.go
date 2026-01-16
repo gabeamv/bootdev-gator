@@ -1,4 +1,4 @@
-package configure
+package gatorconfig
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	CONFIG_FILE_NAME string = "connection_config.json"
+	CONFIG_FILE_NAME string = ".gatorconfig.json"
 )
 
 type Config struct {
