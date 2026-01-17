@@ -1,11 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/gabeamv/bootdev-gator/gatorcommand"
+	"github.com/gabeamv/bootdev-gator/internal/database"
 	"github.com/gabeamv/bootdev-gator/internal/gatorconfig"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -13,10 +16,16 @@ func main() {
 	if err != nil {
 		fmt.Printf("error reading the configuration file: %v\n", err)
 	}
-	state := gatorcommand.State{S: &config}
+	db, err := sql.Open("postgres", config.DBUrl) // Open a database connection
+	if err != nil {
+		fmt.Printf("error opening a database connection to %v: %v\n", config.DBUrl, err)
+	}
+	dbQueries := database.New(db)                          // we get all the queries that we have converted from sql to golang.
+	state := gatorcommand.State{Db: dbQueries, S: &config} // state will be able to query the database as well as update the configuration file
 	commands := gatorcommand.Commands{Commands: make(map[string]func(s *gatorcommand.State, c gatorcommand.Command) error)}
 
 	commands.Register(gatorcommand.LOGIN, gatorcommand.HandlerLogin)
+	commands.Register(gatorcommand.REGISTER, gatorcommand.HandlerRegister)
 
 	commandName, args, err := CleanInput(os.Args)
 	if err != nil {
