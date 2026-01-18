@@ -8,4 +8,5 @@ const (
 	USERS    = "users"
 	AGG      = "agg"
 	ADDFEED  = "addfeed"
+	FEEDS    = "feeds"
 )

@@ -30,6 +30,7 @@ func main() {
 	commands.Register(gatorcommand.USERS, gatorcommand.HandlerUsers)
 	commands.Register(gatorcommand.AGG, gatorcommand.HandlerAgg)
 	commands.Register(gatorcommand.ADDFEED, gatorcommand.HandlerAddFeed)
+	commands.Register(gatorcommand.FEEDS, gatorcommand.HandlerFeeds)
 
 	commandName, args, err := CleanInput(os.Args)
 	if err != nil {

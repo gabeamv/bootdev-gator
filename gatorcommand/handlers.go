@@ -101,3 +101,23 @@ func HandlerAddFeed(s *State, cmd Command) error {
 	fmt.Printf("User '%v' has added feed: %v\n", currUser.Name, feed.Name)
 	return nil
 }
+
+func HandlerFeeds(s *State, cmd Command) error {
+	if len(cmd.Args) > 0 {
+		return fmt.Errorf("error, no arguments expected")
+	}
+	feeds, err := s.Db.GetFeeds(context.Background())
+	if err != nil {
+		return fmt.Errorf("error getting the feeds from the database: %w", err)
+	}
+	var out string
+	for _, feed := range feeds {
+		out += fmt.Sprintf("Name: %v\tURL: %v\tAdding User: %v\n", feed.Name, feed.Url, feed.AddingUser)
+	}
+	if out == "" {
+		fmt.Println(out)
+	} else {
+		fmt.Print(out)
+	}
+	return nil
+}
