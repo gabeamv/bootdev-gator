@@ -26,6 +26,9 @@ func main() {
 
 	commands.Register(gatorcommand.LOGIN, gatorcommand.HandlerLogin)
 	commands.Register(gatorcommand.REGISTER, gatorcommand.HandlerRegister)
+	commands.Register(gatorcommand.RESET, gatorcommand.HandlerReset)
+	commands.Register(gatorcommand.USERS, gatorcommand.HandlerUsers)
+	commands.Register(gatorcommand.AGG, gatorcommand.HandlerAgg)
 
 	commandName, args, err := CleanInput(os.Args)
 	if err != nil {
