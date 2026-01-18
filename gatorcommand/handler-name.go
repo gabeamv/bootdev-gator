@@ -7,4 +7,5 @@ const (
 	RESET    = "reset"
 	USERS    = "users"
 	AGG      = "agg"
+	ADDFEED  = "addfeed"
 )

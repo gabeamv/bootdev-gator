@@ -7,7 +7,6 @@ import (
 
 	"github.com/gabeamv/bootdev-gator/gatorfeed"
 	"github.com/gabeamv/bootdev-gator/internal/database"
-	"github.com/google/uuid"
 )
 
 // Handler function to handle the login command.
@@ -33,7 +32,8 @@ func HandlerRegister(s *State, cmd Command) error {
 		return fmt.Errorf("arguments expected: 'username'")
 	}
 	username := cmd.Args[0]
-	user, err := s.Db.CreateUser(context.Background(), database.CreateUserParams{ID: uuid.New(), CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC(), Name: username})
+	now := time.Now().UTC()
+	user, err := s.Db.CreateUser(context.Background(), database.CreateUserParams{CreatedAt: now, UpdatedAt: now, Name: username})
 	if err != nil {
 		return fmt.Errorf("error creating user=%v: %w", username, err)
 	}
@@ -80,5 +80,24 @@ func HandlerAgg(s *State, cmd Command) error {
 		return fmt.Errorf("error getting the feed: %w", err)
 	}
 	fmt.Println(feed)
+	return nil
+}
+
+func HandlerAddFeed(s *State, cmd Command) error {
+	if len(cmd.Args) != 2 {
+		return fmt.Errorf("error, expecting args='name','url'")
+	}
+	name := cmd.Args[0]
+	url := cmd.Args[1]
+	currUser, err := s.Db.GetUser(context.Background(), s.S.CurrentUsername)
+	if err != nil {
+		return fmt.Errorf("error getting the current user: %w", err)
+	}
+	now := time.Now().UTC()
+	feed, err := s.Db.CreateFeed(context.Background(), database.CreateFeedParams{CreatedAt: now, UpdatedAt: now, Name: name, Url: url, UserID: currUser.ID})
+	if err != nil {
+		return fmt.Errorf("error adding feed '%v' to the database: %w", name, err)
+	}
+	fmt.Printf("User '%v' has added feed: %v\n", currUser.Name, feed.Name)
 	return nil
 }
