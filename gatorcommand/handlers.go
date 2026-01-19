@@ -98,6 +98,11 @@ func HandlerAddFeed(s *State, cmd Command) error {
 	if err != nil {
 		return fmt.Errorf("error adding feed '%v' to the database: %w", name, err)
 	}
+	_, err = s.Db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{CreatedAt: now, UpdatedAt: now,
+		UserID: currUser.ID, FeedID: feed.ID})
+	if err != nil {
+		return fmt.Errorf("error '%v' tyring to follow '%v': %w", currUser.Name, feed.Url, err)
+	}
 	fmt.Printf("User '%v' has added feed: %v\n", currUser.Name, feed.Name)
 	return nil
 }
@@ -119,5 +124,49 @@ func HandlerFeeds(s *State, cmd Command) error {
 	} else {
 		fmt.Print(out)
 	}
+	return nil
+}
+
+func HandlerFollow(s *State, cmd Command) error {
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("error, expected args='url'")
+	}
+	url := cmd.Args[0]
+	currentUser, err := s.Db.GetUser(context.Background(), s.S.CurrentUsername)
+	if err != nil {
+		return fmt.Errorf("error getting user of username '%v': %w", s.S.CurrentUsername, err)
+	}
+	feedToFollow, err := s.Db.GetFeedFromUrl(context.Background(), url)
+	if err != nil {
+		return fmt.Errorf("error getting feed to follow using url '%v': %w", url, err)
+	}
+	now := time.Now().UTC()
+	followedData, err := s.Db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{CreatedAt: now, UpdatedAt: now,
+		UserID: currentUser.ID, FeedID: feedToFollow.ID})
+
+	if err != nil {
+		return fmt.Errorf("error '%v' could not follow '%v': %w", currentUser.Name, url, err)
+	}
+	fmt.Printf("User '%v' has followed '%v'.\n", followedData.UserName, followedData.FeedName)
+	return nil
+}
+
+func HandlerFollowing(s *State, cmd Command) error {
+	if len(cmd.Args) != 0 {
+		return fmt.Errorf("error, expected args=none")
+	}
+	user, err := s.Db.GetUser(context.Background(), s.S.CurrentUsername)
+	if err != nil {
+		return fmt.Errorf("error getting user '%v': %w", s.S.CurrentUsername, err)
+	}
+	userFollowings, err := s.Db.GetFeedFollowsForUser(context.Background(), user.ID)
+	if err != nil {
+		return fmt.Errorf("error getting the followers for user '%v': %w", user.Name, err)
+	}
+	out := fmt.Sprintf("%v's followings:\n", user.Name)
+	for _, userFollowing := range userFollowings {
+		out += fmt.Sprintf("Feed: %v\tURL: %v\tAdding User: %v\n", userFollowing.FeedName, userFollowing.Url, userFollowing.AddingUser)
+	}
+	fmt.Println(out)
 	return nil
 }

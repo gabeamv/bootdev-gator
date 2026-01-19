@@ -31,6 +31,8 @@ func main() {
 	commands.Register(gatorcommand.AGG, gatorcommand.HandlerAgg)
 	commands.Register(gatorcommand.ADDFEED, gatorcommand.HandlerAddFeed)
 	commands.Register(gatorcommand.FEEDS, gatorcommand.HandlerFeeds)
+	commands.Register(gatorcommand.FOLLOW, gatorcommand.HandlerFollow)
+	commands.Register(gatorcommand.FOLLOWING, gatorcommand.HandlerFollowing)
 
 	commandName, args, err := CleanInput(os.Args)
 	if err != nil {
