@@ -29,10 +29,10 @@ func main() {
 	commands.Register(gatorcommand.RESET, gatorcommand.HandlerReset)
 	commands.Register(gatorcommand.USERS, gatorcommand.HandlerUsers)
 	commands.Register(gatorcommand.AGG, gatorcommand.HandlerAgg)
-	commands.Register(gatorcommand.ADDFEED, gatorcommand.HandlerAddFeed)
+	commands.Register(gatorcommand.ADDFEED, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerAddFeed))
 	commands.Register(gatorcommand.FEEDS, gatorcommand.HandlerFeeds)
-	commands.Register(gatorcommand.FOLLOW, gatorcommand.HandlerFollow)
-	commands.Register(gatorcommand.FOLLOWING, gatorcommand.HandlerFollowing)
+	commands.Register(gatorcommand.FOLLOW, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerFollow))
+	commands.Register(gatorcommand.FOLLOWING, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerFollowing))
 
 	commandName, args, err := CleanInput(os.Args)
 	if err != nil {

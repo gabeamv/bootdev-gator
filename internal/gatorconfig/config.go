@@ -46,7 +46,7 @@ func (c *Config) SetUser(username string) error {
 	c.CurrentUsername = username
 	filePath, err := GetConfigPath()
 	if err != nil {
-		fmt.Errorf("error getting config file path: %w", err)
+		return fmt.Errorf("error getting config file path: %w", err)
 	}
 	bytes, err := json.Marshal(c)
 	if err != nil {

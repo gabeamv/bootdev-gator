@@ -83,27 +83,23 @@ func HandlerAgg(s *State, cmd Command) error {
 	return nil
 }
 
-func HandlerAddFeed(s *State, cmd Command) error {
+func HandlerAddFeed(s *State, cmd Command, user database.User) error {
 	if len(cmd.Args) != 2 {
 		return fmt.Errorf("error, expecting args='name','url'")
 	}
 	name := cmd.Args[0]
 	url := cmd.Args[1]
-	currUser, err := s.Db.GetUser(context.Background(), s.S.CurrentUsername)
-	if err != nil {
-		return fmt.Errorf("error getting the current user: %w", err)
-	}
 	now := time.Now().UTC()
-	feed, err := s.Db.CreateFeed(context.Background(), database.CreateFeedParams{CreatedAt: now, UpdatedAt: now, Name: name, Url: url, UserID: currUser.ID})
+	feed, err := s.Db.CreateFeed(context.Background(), database.CreateFeedParams{CreatedAt: now, UpdatedAt: now, Name: name, Url: url, UserID: user.ID})
 	if err != nil {
 		return fmt.Errorf("error adding feed '%v' to the database: %w", name, err)
 	}
 	_, err = s.Db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{CreatedAt: now, UpdatedAt: now,
-		UserID: currUser.ID, FeedID: feed.ID})
+		UserID: user.ID, FeedID: feed.ID})
 	if err != nil {
-		return fmt.Errorf("error '%v' tyring to follow '%v': %w", currUser.Name, feed.Url, err)
+		return fmt.Errorf("error '%v' tyring to follow '%v': %w", user.Name, feed.Url, err)
 	}
-	fmt.Printf("User '%v' has added feed: %v\n", currUser.Name, feed.Name)
+	fmt.Printf("User '%v' has added feed: %v\n", user.Name, feed.Name)
 	return nil
 }
 
@@ -127,37 +123,29 @@ func HandlerFeeds(s *State, cmd Command) error {
 	return nil
 }
 
-func HandlerFollow(s *State, cmd Command) error {
+func HandlerFollow(s *State, cmd Command, user database.User) error {
 	if len(cmd.Args) != 1 {
 		return fmt.Errorf("error, expected args='url'")
 	}
 	url := cmd.Args[0]
-	currentUser, err := s.Db.GetUser(context.Background(), s.S.CurrentUsername)
-	if err != nil {
-		return fmt.Errorf("error getting user of username '%v': %w", s.S.CurrentUsername, err)
-	}
 	feedToFollow, err := s.Db.GetFeedFromUrl(context.Background(), url)
 	if err != nil {
 		return fmt.Errorf("error getting feed to follow using url '%v': %w", url, err)
 	}
 	now := time.Now().UTC()
 	followedData, err := s.Db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{CreatedAt: now, UpdatedAt: now,
-		UserID: currentUser.ID, FeedID: feedToFollow.ID})
+		UserID: user.ID, FeedID: feedToFollow.ID})
 
 	if err != nil {
-		return fmt.Errorf("error '%v' could not follow '%v': %w", currentUser.Name, url, err)
+		return fmt.Errorf("error '%v' could not follow '%v': %w", user.Name, url, err)
 	}
 	fmt.Printf("User '%v' has followed '%v'.\n", followedData.UserName, followedData.FeedName)
 	return nil
 }
 
-func HandlerFollowing(s *State, cmd Command) error {
+func HandlerFollowing(s *State, cmd Command, user database.User) error {
 	if len(cmd.Args) != 0 {
 		return fmt.Errorf("error, expected args=none")
-	}
-	user, err := s.Db.GetUser(context.Background(), s.S.CurrentUsername)
-	if err != nil {
-		return fmt.Errorf("error getting user '%v': %w", s.S.CurrentUsername, err)
 	}
 	userFollowings, err := s.Db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
