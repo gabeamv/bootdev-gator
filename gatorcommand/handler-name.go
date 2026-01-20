@@ -11,4 +11,5 @@ const (
 	FEEDS     = "feeds"
 	FOLLOW    = "follow"
 	FOLLOWING = "following"
+	UNFOLLOW  = "unfollow"
 )

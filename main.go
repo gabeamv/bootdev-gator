@@ -33,6 +33,7 @@ func main() {
 	commands.Register(gatorcommand.FEEDS, gatorcommand.HandlerFeeds)
 	commands.Register(gatorcommand.FOLLOW, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerFollow))
 	commands.Register(gatorcommand.FOLLOWING, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerFollowing))
+	commands.Register(gatorcommand.UNFOLLOW, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerUnfollow))
 
 	commandName, args, err := CleanInput(os.Args)
 	if err != nil {
