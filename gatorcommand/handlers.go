@@ -2,7 +2,9 @@ package gatorcommand
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/gabeamv/bootdev-gator/gatorfeed"
@@ -75,11 +77,44 @@ func HandlerUsers(s *State, cmd Command) error {
 }
 
 func HandlerAgg(s *State, cmd Command) error {
-	feed, err := gatorfeed.FetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
-	if err != nil {
-		return fmt.Errorf("error getting the feed: %w", err)
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("error, expected args='time_betwee_reqs' in seconds")
 	}
-	fmt.Println(feed)
+	seconds, err := strconv.Atoi(cmd.Args[0])
+	if err != nil {
+		return fmt.Errorf("error converting '%v' to int: %w", cmd.Args[0], err)
+	}
+	ticker := time.NewTicker(time.Duration(seconds) * time.Second)
+	fmt.Printf("Collecting feeds every %v seconds...\n", seconds)
+	for ; ; <-ticker.C {
+		scrapeFeeds(s)
+	}
+}
+
+// called in HandlerAgg
+func scrapeFeeds(s *State) error {
+	feed, err := s.Db.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		return fmt.Errorf("error getting the next feed to fetch: %w", err)
+	}
+	now := time.Now().UTC()
+	nowNullable := sql.NullTime{Time: now, Valid: true}
+
+	err = s.Db.MarkFeedFetched(context.Background(), database.MarkFeedFetchedParams{ID: feed.ID, LastFetchedAt: nowNullable, UpdatedAt: now})
+	if err != nil {
+		return fmt.Errorf("error marking the fetched feed '%v': %w", feed.Url, err)
+	}
+
+	rss, err := gatorfeed.FetchFeed(context.Background(), feed.Url)
+	if err != nil {
+		return fmt.Errorf("error fetching feed '%v': %w", feed.Url, err)
+	}
+	gatorfeed.CleanFeed(rss)
+	titles := fmt.Sprintf("Titles for feed: %v\n", feed.Url)
+	for _, rssitem := range rss.Channel.Item {
+		titles += rssitem.Title + "\n"
+	}
+	fmt.Print(titles)
 	return nil
 }
 
