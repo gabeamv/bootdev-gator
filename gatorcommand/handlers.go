@@ -85,7 +85,7 @@ func HandlerAgg(s *State, cmd Command) error {
 		return fmt.Errorf("error converting '%v' to int: %w", cmd.Args[0], err)
 	}
 	ticker := time.NewTicker(time.Duration(seconds) * time.Second)
-	fmt.Printf("Collecting feeds every %v seconds...\n", seconds)
+	fmt.Printf("Collecting feeds every %v seconds...\n\n", seconds)
 	for ; ; <-ticker.C {
 		scrapeFeeds(s)
 	}
@@ -110,11 +110,43 @@ func scrapeFeeds(s *State) error {
 		return fmt.Errorf("error fetching feed '%v': %w", feed.Url, err)
 	}
 	gatorfeed.CleanFeed(rss)
-	titles := fmt.Sprintf("Titles for feed: %v\n", feed.Url)
+	fmt.Printf("Saving posts in the database for feed: %v; %v\n", feed.Name, feed.Url)
 	for _, rssitem := range rss.Channel.Item {
-		titles += rssitem.Title + "\n"
+		now := time.Now().UTC()
+		_, err := s.Db.CreatePost(context.Background(), database.CreatePostParams{CreatedAt: now, UpdatedAt: now, Title: rssitem.Title,
+			Url: rssitem.Link, Description: rssitem.Description, PublishedAt: rssitem.PubDate, FeedID: feed.ID})
+		if err != nil {
+			fmt.Println(fmt.Errorf("error creating post for '%v;%v': %w\n", rssitem.Title, rssitem.Link, err))
+		}
 	}
-	fmt.Print(titles)
+	return nil
+}
+
+func HandlerBrowse(s *State, c Command, user database.User) error {
+	if len(c.Args) >= 2 {
+		return fmt.Errorf("error, expected args='num_posts (optional)'")
+	}
+	var limit int
+	var err error
+	if len(c.Args) == 0 {
+		limit = 2
+	} else {
+		limit, err = strconv.Atoi(c.Args[0])
+		if err != nil {
+			return fmt.Errorf("error, cannot convert '%v' to int: %w", c.Args[0], err)
+		}
+	}
+
+	posts, err := s.Db.GetPostsForUser(context.Background(), database.GetPostsForUserParams{UserID: user.ID, Limit: int32(limit)})
+	if err != nil {
+		return fmt.Errorf("error getting posts for user '%v' with limit '%v': %w", user.Name, limit, err)
+	}
+	out := fmt.Sprintf("'%v' latest posts followed by '%v':\n", limit, user.Name)
+	for _, post := range posts {
+		out += "*************************************************************\n"
+		out += fmt.Sprintf("Title: %v\nURL: %v\nFeed: %v\nPublished At: %v\nDescription: %v\n", post.Title, post.Url, post.FeedName, post.PublishedAt, post.Description)
+	}
+	fmt.Print(out)
 	return nil
 }
 

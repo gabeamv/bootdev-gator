@@ -34,7 +34,7 @@ func FetchFeed(ctx context.Context, feedUrl string) (*RSSFeed, error) {
 	req.Header.Set("User-Agent", "gator")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error sending get request to '%v': %w")
+		return nil, fmt.Errorf("error sending get request to '%v': %w", feedUrl, err)
 	}
 	defer resp.Body.Close()
 	var feed RSSFeed
@@ -50,11 +50,15 @@ func FetchFeed(ctx context.Context, feedUrl string) (*RSSFeed, error) {
 	return &feed, nil
 }
 
+func CleanItem(item *RSSItem) {
+	item.Title = html.UnescapeString(item.Title)
+	item.Description = html.UnescapeString(item.Description)
+}
+
 func CleanFeed(feed *RSSFeed) {
 	feed.Channel.Title = html.UnescapeString(feed.Channel.Title)
 	feed.Channel.Description = html.UnescapeString(feed.Channel.Description)
-	for _, rssitem := range feed.Channel.Item {
-		rssitem.Title = html.UnescapeString(rssitem.Title)
-		rssitem.Description = html.UnescapeString(rssitem.Description)
+	for i := range feed.Channel.Item {
+		CleanItem(&feed.Channel.Item[i])
 	}
 }

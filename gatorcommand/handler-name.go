@@ -12,4 +12,5 @@ const (
 	FOLLOW    = "follow"
 	FOLLOWING = "following"
 	UNFOLLOW  = "unfollow"
+	BROWSE    = "browse"
 )
