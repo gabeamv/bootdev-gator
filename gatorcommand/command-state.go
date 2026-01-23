@@ -18,7 +18,8 @@ type Command struct {
 }
 
 type Commands struct {
-	Commands map[string]func(s *State, cmd Command) error // map storing key value pairs of command name and its handler
+	Commands     map[string]func(s *State, cmd Command) error // map storing key value pairs of command name and its handler
+	Descriptions map[string]string
 }
 
 // The Commands struct runs a specific command with its own handler.
@@ -35,10 +36,11 @@ func (c *Commands) Run(s *State, cmd Command) error {
 }
 
 // Register a command with its name and its own handler.
-func (c *Commands) Register(name string, f func(*State, Command) error) error {
+func (c *Commands) Register(name string, f func(*State, Command) error, description string) error {
 	_, ok := c.Commands[name]
 	if !ok {
 		c.Commands[name] = f
+		c.Descriptions[name] = description
 		return nil
 	}
 	return fmt.Errorf("error. unable to register command '%v'.", name)

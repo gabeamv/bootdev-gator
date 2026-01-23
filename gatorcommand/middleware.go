@@ -20,3 +20,13 @@ func MiddlewareLoggedIn(handler func(*State, Command, database.User) error) func
 		return nil
 	}
 }
+
+func MiddlewareAllCommands(handler func(*State, Command, Commands) error, commands Commands) func(*State, Command) error {
+	return func(s *State, c Command) error {
+		err := handler(s, c, commands)
+		if err != nil {
+			return fmt.Errorf("error middleware commands: %w", err)
+		}
+		return nil
+	}
+}

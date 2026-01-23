@@ -22,19 +22,20 @@ func main() {
 	}
 	dbQueries := database.New(db)                          // we get all the queries that we have converted from sql to golang.
 	state := gatorcommand.State{Db: dbQueries, S: &config} // state will be able to query the database as well as update the configuration file
-	commands := gatorcommand.Commands{Commands: make(map[string]func(s *gatorcommand.State, c gatorcommand.Command) error)}
+	commands := gatorcommand.Commands{Commands: make(map[string]func(s *gatorcommand.State, c gatorcommand.Command) error), Descriptions: make(map[string]string)}
 
-	commands.Register(gatorcommand.LOGIN, gatorcommand.HandlerLogin)
-	commands.Register(gatorcommand.REGISTER, gatorcommand.HandlerRegister)
-	commands.Register(gatorcommand.RESET, gatorcommand.HandlerReset)
-	commands.Register(gatorcommand.USERS, gatorcommand.HandlerUsers)
-	commands.Register(gatorcommand.AGG, gatorcommand.HandlerAgg)
-	commands.Register(gatorcommand.ADDFEED, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerAddFeed))
-	commands.Register(gatorcommand.FEEDS, gatorcommand.HandlerFeeds)
-	commands.Register(gatorcommand.FOLLOW, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerFollow))
-	commands.Register(gatorcommand.FOLLOWING, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerFollowing))
-	commands.Register(gatorcommand.UNFOLLOW, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerUnfollow))
-	commands.Register(gatorcommand.BROWSE, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerBrowse))
+	commands.Register(gatorcommand.LOGIN, gatorcommand.HandlerLogin, gatorcommand.LOGIN_DESCRIBE)
+	commands.Register(gatorcommand.REGISTER, gatorcommand.HandlerRegister, gatorcommand.REGISTER_DESCRIBE)
+	commands.Register(gatorcommand.RESET, gatorcommand.HandlerReset, gatorcommand.RESET_DESCRIBE)
+	commands.Register(gatorcommand.USERS, gatorcommand.HandlerUsers, gatorcommand.USERS_DESCRIBE)
+	commands.Register(gatorcommand.AGG, gatorcommand.HandlerAgg, gatorcommand.AGG_DESCRIBE)
+	commands.Register(gatorcommand.ADDFEED, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerAddFeed), gatorcommand.ADDFEED_DESCRIBE)
+	commands.Register(gatorcommand.FEEDS, gatorcommand.HandlerFeeds, gatorcommand.FEEDS_DESCRIBE)
+	commands.Register(gatorcommand.FOLLOW, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerFollow), gatorcommand.FOLLOW_DESCRIBE)
+	commands.Register(gatorcommand.FOLLOWING, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerFollowing), gatorcommand.FOLLOWING_DESCRIBE)
+	commands.Register(gatorcommand.UNFOLLOW, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerUnfollow), gatorcommand.UNFOLLOW_DESCRIBE)
+	commands.Register(gatorcommand.BROWSE, gatorcommand.MiddlewareLoggedIn(gatorcommand.HandlerBrowse), gatorcommand.BROWSE_DESCRIBE)
+	commands.Register(gatorcommand.HELP, gatorcommand.MiddlewareAllCommands(gatorcommand.HandlerHelp, commands), gatorcommand.HELP_DESCRIBE)
 
 	commandName, args, err := CleanInput(os.Args)
 	if err != nil {

@@ -241,3 +241,12 @@ func HandlerUnfollow(s *State, cmd Command, user database.User) error {
 	}
 	return nil
 }
+
+func HandlerHelp(s *State, cmd Command, c Commands) error {
+	out := "Type 'bootdev-gator' before each command. All possible commands:\n"
+	for name, description := range c.Descriptions {
+		out += fmt.Sprintf("%v: %v\n", name, description)
+	}
+	fmt.Print(out)
+	return nil
+}
