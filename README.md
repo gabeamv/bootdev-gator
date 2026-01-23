@@ -14,6 +14,7 @@ Gator is an [RSS (Really Simple Syndication)](https://en.wikipedia.org/wiki/RSS)
 6. Set the user password (Linux only): **ALTER USER postgres PASSWORD 'postgres';**
 7. Manually create a configuration file in your home directory called **.gatorconfig.json** with the contents:
     * {"db_url":"postgres://{db_username}:{db_password}@localhost:5432/gator?sslmode=disable","current_username":""}
+    * replace '{db_username} and {db_password}' with the credentials you set
 8. Install the application using: **go install github.com/gabeamv/bootdev-gator**
     * The executable will be installed in your bin go/bin folder
 
